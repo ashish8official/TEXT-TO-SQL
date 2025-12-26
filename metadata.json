@@ -1,0 +1,5 @@
+{
+  "name": "SQLWise AI",
+  "description": "A professional Text-to-SQL platform that transforms natural language into optimized SQL queries using Gemini 3 Pro. Features schema management, query history, and natural language explanations.",
+  "requestFramePermissions": []
+}
