@@ -4,69 +4,76 @@ import React from 'react';
 interface LayoutProps {
   children: React.ReactNode;
   sidebar: React.ReactNode;
-  history: React.ReactNode;
   activePanel: 'schema' | 'history';
   setActivePanel: (panel: 'schema' | 'history') => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, sidebar, history, activePanel, setActivePanel }) => {
+const Layout: React.FC<LayoutProps> = ({ children, sidebar, activePanel, setActivePanel }) => {
   return (
-    <div className="flex h-screen w-full overflow-hidden p-3 gap-3 bg-[#020617]">
-      {/* Retractable Sidebar */}
-      <aside className="w-72 flex flex-col gap-3 h-full">
-        {/* Toggle Bar */}
-        <div className="glass-panel rounded-2xl p-1.5 flex gap-1">
-          <button 
-            onClick={() => setActivePanel('schema')}
-            className={`flex-1 py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all ${activePanel === 'schema' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:bg-white/5'}`}
-          >
-            Schema
-          </button>
-          <button 
-            onClick={() => setActivePanel('history')}
-            className={`flex-1 py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all ${activePanel === 'history' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:bg-white/5'}`}
-          >
-            History
-          </button>
+    <div className="flex h-screen w-full bg-[#09090b] text-slate-300">
+      {/* Sidebar - Fixed Left */}
+      <aside className="w-[280px] flex-shrink-0 flex flex-col border-r border-white/10 bg-[#020617] h-full">
+        {/* Sidebar Header */}
+        <div className="h-14 flex items-center px-4 border-b border-white/5">
+          <div className="flex items-center gap-2 text-slate-100">
+             <div className="w-6 h-6 rounded bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.58 4 8 4s8-1.79 8-4M4 7c0-2.21 3.58-4 8-4s8 1.79 8 4m0 5c0 2.21-3.58 4-8 4s-8-1.79-8-4"/></svg>
+             </div>
+             <span className="font-bold text-sm tracking-tight">SQLWise</span>
+          </div>
         </div>
 
-        {/* Dynamic Content Panel */}
-        <div className="flex-1 glass-panel rounded-3xl overflow-hidden flex flex-col min-h-0">
-          <div className="p-5 border-b border-white/5">
-            <h2 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">
-              {activePanel === 'schema' ? 'Database Context' : 'Recent Queries'}
-            </h2>
+        {/* Panel Toggles */}
+        <div className="p-3">
+          <div className="bg-white/5 p-1 rounded-lg flex">
+            <button 
+              onClick={() => setActivePanel('schema')}
+              className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${activePanel === 'schema' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              Schema
+            </button>
+            <button 
+              onClick={() => setActivePanel('history')}
+              className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${activePanel === 'history' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              History
+            </button>
           </div>
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-            {activePanel === 'schema' ? sidebar : history}
+        </div>
+
+        {/* Sidebar Content */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+          {sidebar}
+        </div>
+        
+        {/* User / Footer area in sidebar */}
+        <div className="p-4 border-t border-white/5">
+          <div className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500"></div>
+            <div className="flex flex-col">
+               <span className="text-xs font-bold text-slate-200">User Account</span>
+               <span className="text-[10px] text-slate-500">Pro Plan Active</span>
+            </div>
           </div>
         </div>
       </aside>
 
-      {/* Primary Workspace */}
-      <main className="flex-1 glass-panel rounded-[2.5rem] overflow-hidden flex flex-col h-full relative">
-        <header className="h-14 flex items-center justify-between px-8 border-b border-white/5">
-          <div className="flex items-center gap-3">
-             <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
-               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-             </div>
-             <span className="font-black text-[10px] uppercase tracking-[0.3em] text-slate-400">SQL Studio v3.0</span>
-          </div>
-          
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col h-full relative min-w-0 bg-[#09090b]">
+        {/* Header - Minimalist */}
+        <header className="h-14 flex-shrink-0 flex items-center justify-between px-6 border-b border-white/5 bg-[#09090b]/80 backdrop-blur-md z-10">
           <div className="flex items-center gap-4">
-            <div className="flex items-center -space-x-1.5">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="w-6 h-6 rounded-full border-2 border-[#020617] bg-slate-800 flex items-center justify-center text-[8px] font-black">
-                  U{i}
-                </div>
-              ))}
-            </div>
-            <div className="h-4 w-[1px] bg-white/10 mx-1"></div>
-            <button className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300">Share</button>
+            <h1 className="text-sm font-medium text-slate-400">Untitled Project / <span className="text-slate-200">Query 1</span></h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors">Documentation</button>
+            <div className="h-4 w-[1px] bg-white/10"></div>
+            <button className="text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors">Settings</button>
           </div>
         </header>
 
-        <div className="flex-1 relative flex flex-col min-h-0">
+        {/* Workspace */}
+        <div className="flex-1 flex flex-col relative overflow-hidden">
           {children}
         </div>
       </main>

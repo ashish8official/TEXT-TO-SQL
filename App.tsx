@@ -78,30 +78,36 @@ const App: React.FC = () => {
       console.error(err);
     } finally {
       setIsLoading(false);
-      inputRef.current?.focus();
+      // Keep focus on input after send
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
 
   const Sidebar = () => (
-    <div className="p-5 space-y-8">
+    <div className="px-3 py-4 space-y-8">
       <section className="space-y-3">
-        <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Engine Dialect</h4>
-        <div className="grid grid-cols-2 gap-1.5">
+        <div className="flex items-center justify-between px-1">
+          <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Dialect</h4>
+          <span className="text-[10px] text-indigo-400 font-bold">{dialect}</span>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
           {SQL_DIALECTS.map(d => (
             <button
               key={d}
               onClick={() => setDialect(d)}
-              className={`px-3 py-2 rounded-xl text-[10px] font-bold transition-all border ${
-                dialect === d ? 'bg-indigo-600/10 border-indigo-500/40 text-indigo-400' : 'border-white/5 text-slate-500 hover:bg-white/5'
+              className={`px-2.5 py-1.5 rounded-md text-[10px] font-bold transition-all border ${
+                dialect === d 
+                  ? 'bg-indigo-600 border-indigo-500 text-white' 
+                  : 'bg-white/5 border-transparent text-slate-400 hover:bg-white/10 hover:text-slate-200'
               }`}
             >
-              {d}
+              {d === 'PostgreSQL' ? 'Postgres' : d}
             </button>
           ))}
         </div>
       </section>
 
-      <div className="h-[1px] bg-white/5"></div>
+      <div className="h-[1px] bg-white/5 mx-1"></div>
 
       <SchemaPanel
         schemas={DEFAULT_SCHEMAS}
@@ -113,17 +119,17 @@ const App: React.FC = () => {
   );
 
   const HistoryTimeline = () => (
-    <div className="p-4 flex flex-col gap-2.5">
+    <div className="px-2 py-4 flex flex-col gap-2">
       {history.length === 0 ? (
-        <div className="text-center py-20 opacity-20 text-[10px] font-black uppercase tracking-widest">No Recent Logs</div>
+        <div className="text-center py-10 opacity-30 text-[10px] font-bold uppercase tracking-widest">No History</div>
       ) : (
         history.map(item => (
-          <div key={item.id} className="group p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-indigo-500/40 transition-all cursor-pointer" onClick={() => handleSend(item.prompt)}>
-            <div className="flex justify-between items-start mb-1.5">
-              <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">{item.dialect}</span>
-              <span className="text-[8px] text-slate-600 font-bold">{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+          <div key={item.id} className="group p-3 rounded-lg bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 hover:bg-white/[0.04] transition-all cursor-pointer" onClick={() => handleSend(item.prompt)}>
+            <div className="flex justify-between items-start mb-1">
+              <span className="text-[9px] font-bold text-indigo-400 uppercase">{item.dialect}</span>
+              <span className="text-[9px] text-slate-600">{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
-            <p className="text-[11px] text-slate-300 font-bold line-clamp-2 leading-relaxed">{item.prompt}</p>
+            <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">{item.prompt}</p>
           </div>
         ))
       )}
@@ -131,134 +137,136 @@ const App: React.FC = () => {
   );
 
   return (
-    <Layout sidebar={<Sidebar />} history={<HistoryTimeline />} activePanel={activePanel} setActivePanel={setActivePanel}>
-      <div className="flex flex-col h-full">
-        {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar px-6 md:px-12 py-8">
-          <div className="max-w-4xl mx-auto min-h-full flex flex-col">
-            
-            {messages.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center py-12">
-                <h1 className="text-5xl md:text-6xl font-black mb-6 tracking-tight leading-[1.1]">
-                  Neural Query <br/> 
-                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400">Architect.</span>
-                </h1>
-                <p className="text-slate-500 text-sm md:text-base max-w-lg font-medium leading-relaxed mb-10">
-                  Ask questions in plain English. The AI maps your intent to optimized {dialect} structures instantly.
-                </p>
-                
-                <div className="flex flex-wrap justify-center gap-2 max-w-2xl opacity-80">
-                  {[
-                    `Analyze ML metrics`,
-                    `Identify faulty sensors`,
-                    `Sum NeoBank balances`,
-                    `Join experiments with runs`
-                  ].map((s, i) => (
-                    <button 
-                      key={i} 
-                      onClick={() => handleSend(s)} 
-                      className="px-4 py-2 rounded-full bg-white/[0.03] border border-white/5 hover:border-indigo-500/30 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-all"
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
+    <Layout sidebar={activePanel === 'schema' ? <Sidebar /> : <HistoryTimeline />} activePanel={activePanel} setActivePanel={setActivePanel}>
+      
+      {/* Scrollable Message Area */}
+      <div className="flex-1 overflow-y-auto w-full">
+        <div className="max-w-3xl mx-auto px-4 py-8 flex flex-col min-h-full">
+          
+          {messages.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center pb-20">
+              <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center mb-6 border border-indigo-500/20">
+                <svg className="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
               </div>
-            ) : (
-              <div className="space-y-12 pb-24">
-                {messages.map((msg, idx) => (
-                  <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2 duration-500`}>
-                    {msg.role === 'user' ? (
-                      <div className="px-6 py-3.5 rounded-3xl rounded-tr-none bg-indigo-600/10 border border-indigo-500/20 text-indigo-100 font-bold text-sm max-w-[85%]">
-                        {msg.content}
-                      </div>
-                    ) : (
-                      <div className="w-full space-y-6">
-                        <div className="flex flex-col gap-6 w-full">
-                          {msg.reasoning && (
-                            <div className="flex flex-wrap gap-2 animate-in fade-in duration-700">
-                              {msg.reasoning.map((step, i) => (
-                                <div key={i} className="px-3 py-1.5 rounded-lg bg-white/[0.02] border border-white/5 text-[9px] font-black text-slate-500 uppercase tracking-widest italic">
-                                  {step}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          
-                          <p className="text-base text-slate-300 font-medium leading-relaxed max-w-3xl">{msg.content}</p>
-                          
-                          {msg.sql && (
-                            <div className="animate-in zoom-in-95 duration-500 w-full">
-                              <SqlDisplay sql={msg.sql} explanation="" onCopy={() => navigator.clipboard.writeText(msg.sql!)} />
-                            </div>
-                          )}
-
-                          {msg.suggestions && (
-                            <div className="flex flex-wrap gap-2 pt-2">
-                               {msg.suggestions.map((s, i) => (
-                                  <button key={i} onClick={() => handleSend(s)} className="px-3 py-1.5 rounded-full border border-white/5 text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-indigo-400 hover:border-indigo-400 transition-all">
-                                    {s}
-                                  </button>
-                               ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+              <h2 className="text-3xl font-bold text-slate-100 mb-3">How can I help you query?</h2>
+              <p className="text-slate-500 mb-10 max-w-md">
+                I'm your AI Data Architect. Select a schema from the sidebar and ask me anything about your data.
+              </p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg">
+                {[
+                  `Show me all users from USA`,
+                  `Count orders by status for last month`,
+                  `Find experiments with accuracy > 0.9`,
+                  `Calculate average transaction amount`
+                ].map((s, i) => (
+                  <button 
+                    key={i} 
+                    onClick={() => handleSend(s)}
+                    className="p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-indigo-500/40 hover:bg-white/[0.05] text-left transition-all group"
+                  >
+                    <span className="text-xs text-slate-300 font-medium group-hover:text-white">{s}</span>
+                  </button>
                 ))}
-                
-                {isLoading && (
-                  <div className="flex flex-col gap-4 animate-pulse max-w-md">
-                     <div className="h-4 w-1/2 bg-white/5 rounded-full"></div>
-                     <div className="h-24 w-full bg-white/5 rounded-3xl"></div>
-                  </div>
-                )}
-                <div ref={scrollAnchorRef} className="h-8" />
               </div>
-            )}
-          </div>
-        </div>
+            </div>
+          ) : (
+            <div className="space-y-8 pb-4">
+              {messages.map((msg, idx) => (
+                <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                  {msg.role === 'user' ? (
+                    <div className="max-w-[85%] bg-indigo-600 text-white px-5 py-3 rounded-2xl rounded-tr-sm shadow-md text-sm leading-relaxed">
+                      {msg.content}
+                    </div>
+                  ) : (
+                    <div className="w-full pl-2 border-l-2 border-indigo-500/30">
+                      <div className="pl-4 space-y-4">
+                        {msg.reasoning && (
+                          <div className="space-y-1">
+                            {msg.reasoning.map((step, i) => (
+                              <div key={i} className="flex items-start gap-2 text-[10px] text-slate-500">
+                                <span className="mt-0.5 w-1 h-1 rounded-full bg-slate-600"></span>
+                                <span>{step}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        <p className="text-sm text-slate-300 leading-relaxed">{msg.content}</p>
+                        
+                        {msg.sql && (
+                          <div className="mt-3">
+                            <SqlDisplay sql={msg.sql} explanation="" onCopy={() => navigator.clipboard.writeText(msg.sql!)} />
+                          </div>
+                        )}
 
-        {/* Neural Input Station - Integrated */}
-        <div className="px-6 md:px-12 py-6 border-t border-white/5 bg-[#020617]">
-           <div className="max-w-3xl mx-auto">
-              <div className="relative glass-panel rounded-3xl p-2 flex items-end gap-2 shadow-2xl focus-within:border-indigo-500/40 transition-all">
-                <textarea
-                  ref={inputRef}
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
-                  placeholder={`Describe query for ${activeSchema.name}...`}
-                  className="flex-1 bg-transparent py-4 pl-5 text-slate-100 placeholder:text-slate-600 focus:outline-none resize-none text-base font-bold leading-relaxed"
-                  rows={1}
-                  style={{ minHeight: '52px', maxHeight: '160px' }}
-                />
-                <button
-                  onClick={() => handleSend()}
-                  disabled={isLoading || !prompt.trim()}
-                  className={`mb-1 mr-1 p-4 rounded-2xl transition-all ${
-                    isLoading || !prompt.trim()
-                      ? 'bg-slate-800 text-slate-600'
-                      : 'bg-indigo-600 text-white shadow-xl shadow-indigo-500/20 active:scale-95'
-                  }`}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 5l7 7-7 7M5 12h14"/></svg>
-                </button>
-              </div>
-              <div className="mt-3 flex justify-center gap-6 text-[9px] font-black uppercase tracking-widest text-slate-600">
-                <span>Enter to Send</span>
-                <span className="opacity-30">•</span>
-                <span>Shift+Enter for new line</span>
-              </div>
+                        {msg.suggestions && msg.suggestions.length > 0 && (
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            {msg.suggestions.map((s, i) => (
+                              <button key={i} onClick={() => handleSend(s)} className="px-3 py-1.5 rounded-full border border-white/10 text-[10px] font-bold text-slate-400 hover:text-indigo-400 hover:border-indigo-400 transition-colors">
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              
+              {isLoading && (
+                <div className="flex items-center gap-2 pl-6 text-slate-500 text-xs">
+                   <div className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce"></div>
+                   <div className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce delay-100"></div>
+                   <div className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce delay-200"></div>
+                   <span className="ml-2 font-medium">Generating SQL...</span>
+                </div>
+              )}
+              
+              <div ref={scrollAnchorRef} className="h-4" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Input Area - Fixed Bottom */}
+      <div className="flex-shrink-0 w-full bg-[#09090b] border-t border-white/5 p-4 md:p-6 z-20">
+        <div className="max-w-3xl mx-auto relative">
+           <div className="glass-input rounded-xl flex items-end p-2 transition-all ring-1 ring-white/10 focus-within:ring-indigo-500/50">
+             <textarea
+                ref={inputRef}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                placeholder="Describe your data question..."
+                className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-slate-200 placeholder:text-slate-600 px-3 py-3 resize-none max-h-32"
+                rows={1}
+                style={{ minHeight: '44px' }}
+             />
+             <button
+               onClick={() => handleSend()}
+               disabled={isLoading || !prompt.trim()}
+               className={`p-2.5 rounded-lg mb-0.5 mr-0.5 transition-all ${
+                 isLoading || !prompt.trim() 
+                  ? 'text-slate-600 bg-transparent' 
+                  : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-sm'
+               }`}
+             >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 12h14m-7-7l7 7-7 7"/></svg>
+             </button>
+           </div>
+           <div className="text-center mt-3 text-[10px] text-slate-600 font-medium">
+             SQLWise AI can make mistakes. Review generated code.
            </div>
         </div>
       </div>
+
     </Layout>
   );
 };
