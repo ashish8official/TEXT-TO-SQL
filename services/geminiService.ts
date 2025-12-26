@@ -2,7 +2,15 @@
 import { GoogleGenAI, Type, Chat, GenerateContentResponse } from "@google/genai";
 import { Schema, Dialect } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// SECURITY: Always load the API key from environment variables.
+// Do not hardcode secrets in this file.
+const apiKey = process.env.API_KEY;
+
+if (!apiKey) {
+  console.warn("SQLWise: API_KEY is missing from environment variables. AI features will not function.");
+}
+
+const ai = new GoogleGenAI({ apiKey: apiKey || '' });
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
